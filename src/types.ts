@@ -40,6 +40,21 @@ export type UserState = {
   reactivationEmailSent: boolean;
 };
 
+declare global {
+  interface Window {
+    voiceflow?: {
+      chat: {
+        load: (config: Record<string, unknown>) => void;
+        open: () => void;
+        close: () => void;
+        hide: () => void;
+        show: () => void;
+        interact: (event: Record<string, unknown>) => void;
+      };
+    };
+  }
+}
+
 // Design tokens — V3 (primary palette)
 export const DT = {
   primary:      "#6C63FF",

@@ -4,6 +4,7 @@ import { DebugLayout } from "../layouts/DebugLayout";
 import type { DebugState, DebugActions } from "../layouts/DebugLayout";
 // ── V3 screens & components ───────────────────────────────────────────────
 import { AIGoalSuggestionModal } from "../screens/AIGoalSuggestionModal";
+import { AlexChat } from "../screens/AlexChat";
 import { AIGoalEnrichment } from "../screens/AIGoalEnrichment";
 import { AddMoreProjects } from "../screens/AddMoreProjects";
 import { ReactivationEmail } from "../screens/ReactivationEmail";
@@ -32,7 +33,9 @@ type Screen =
   | "goalDetail" | "analysis" | "notifications" | "profile"
   // V3 screens
   | "aiGoalSuggestion" | "aiGoalEnrichment" | "addMoreProjects"
-  | "reactivationEmail" | "reactivationQuiz" | "allocationPlan";
+  | "reactivationEmail" | "reactivationQuiz" | "allocationPlan"
+  // Alex real agent
+  | "alexChat";
 
 const C = {
   bg: "#F5F5F5",
@@ -573,7 +576,7 @@ function SignupScreen({ go, setFirstName, firstName }: { go: (s: Screen) => void
   );
 }
 
-function HomeScreen({ go, firstName, goals }: { go: (s: Screen) => void; firstName: string; goals: Goal[] }) {
+function HomeScreen({ go, firstName, goals, onOpenAlex }: { go: (s: Screen) => void; firstName: string; goals: Goal[]; onOpenAlex?: () => void }) {
   const initial = (firstName || "A")[0].toUpperCase();
   const balance = useCountUp(284700, 1400);
   return (
@@ -628,6 +631,31 @@ function HomeScreen({ go, firstName, goals }: { go: (s: Screen) => void; firstNa
               <TxRow t={t} onClick={() => go("txDetail")} />
             </div>
           ))}
+
+          {/* Alex CTA */}
+          {onOpenAlex && (
+            <button
+              onClick={() => { playClick(); onOpenAlex(); }}
+              className="w-full rounded-[20px] p-4 flex items-center gap-4 text-left transition active:scale-[0.99] mt-5"
+              style={{ background: "linear-gradient(135deg, #6C63FF 0%, #897FFF 100%)" }}
+            >
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                style={{ background: "rgba(255,255,255,0.2)" }}
+              >
+                💼
+              </div>
+              <div className="flex-1 min-w-0">
+                <div style={{ color: "#fff", fontSize: 15, fontWeight: 700, fontFamily: "Brunson, sans-serif" }}>
+                  Alex, ton conseiller épargne
+                </div>
+                <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, marginTop: 2 }}>
+                  Crée ton plan en quelques minutes ✨
+                </div>
+              </div>
+              <ChevronRight size={20} color="rgba(255,255,255,0.7)" strokeWidth={2} />
+            </button>
+          )}
 
           <div className="flex items-center justify-between mt-6 mb-2">
             <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Mes objectifs</div>
@@ -1764,6 +1792,10 @@ export default function App() {
     reactivationEmailSent: false,
   };
 
+  const openAlex = useCallback(() => {
+    go("alexChat");
+  }, []);
+
   // Add a V3 savings goal (from enrichment or tile selection)
   const addSavingsGoal = (goal: SavingsGoal) => {
     setSavingsGoals((prev) => {
@@ -1862,7 +1894,7 @@ export default function App() {
     switch (screen) {
       case "welcome": return <WelcomeScreen go={go} />;
       case "signup": return <SignupScreen go={go} firstName={firstName} setFirstName={setFirstName} />;
-      case "home": return <HomeScreen go={go} firstName={firstName} goals={goals} />;
+      case "home": return <HomeScreen go={go} firstName={firstName} goals={goals} onOpenAlex={openAlex} />;
       case "transactions": return <TransactionsScreen go={go} />;
       case "txDetail": return <TxDetailScreen go={go} onConfirm={handleTxConfirm} />;
       case "goals": return (
@@ -2050,6 +2082,8 @@ export default function App() {
             onBack={() => go("reactivationQuiz")}
           />
         );
+      case "alexChat":
+        return <AlexChat onBack={() => go("home")} userState={userState} />;
     }
   };
 
