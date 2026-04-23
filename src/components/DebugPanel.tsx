@@ -224,9 +224,9 @@ export function DebugPanel({ state, actions, onClose, activeTab, onTabChange }: 
 
           <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
             {([
-              { flow: "cluster2",         label: "Client Non-identifié",          sub: "cluster_2 · profil complet (prénom → âge → revenus → projets…)" },
-              { flow: "cluster3_actif",   label: "Richard — Voyage 2 500 €",      sub: "cluster_3 actif · suggestion pré-remplie 9 mois / 278 €/mois" },
-              { flow: "cluster3_passif",  label: "Richard — Générique 1 800 €",   sub: "cluster_3 passif · projection 150 €/mois → 1 800 € en 12 mois" },
+              { flow: "cluster2",         label: "Client non-identifié",          sub: "cluster_2 · profil complet (prénom → âge → revenus → projets…)" },
+              { flow: "cluster3_actif",   label: "Client identifié",              sub: "cluster_3 · suggestion pré-remplie 9 mois / 278 €/mois" },
+              { flow: "cluster3_passif",  label: "Client identifié passif",       sub: "cluster_3 passif · projection 150 €/mois → 1 800 € en 12 mois" },
             ] as const).map(({ flow, label, sub }) => {
               const isActive = state.alexFlow === flow;
               return (
