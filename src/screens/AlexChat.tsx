@@ -77,17 +77,22 @@ export function AlexChat({ onBack, userState }: Props) {
     if (res.ended) setEnded(true);
   }, []);
 
-  // Lancement avec variables contextuelles
+  // Lancement avec variables contextuelles selon le cluster
   useEffect(() => {
-    const variables: Record<string, unknown> = {};
-    if (userState) {
-      const daysSince = userState.firstTransactionDate
-        ? Math.floor(
-            (Date.now() - new Date(userState.firstTransactionDate).getTime()) / 86400000
-          )
-        : 0;
-      variables.days_since_signup = daysSince;
-      variables.savings_goal_created_j7 = userState.savingsGoalCreated;
+    let variables: Record<string, unknown> = {};
+
+    if (userState?.cluster === "cluster_3") {
+      // Client identifié → Playbook "Suggestion initiale personnalisée (Richard)"
+      variables = {
+        days_since_signup: 8,
+        savings_goal_created_j7: false,
+      };
+    } else {
+      // Client non-identifié → phrase d'accroche + Playbook "Âge"
+      variables = {
+        days_since_signup: 2,
+        savings_goal_created_j7: false,
+      };
     }
 
     setTyping(true);
@@ -98,7 +103,7 @@ export function AlexChat({ onBack, userState }: Props) {
         setTyping(false);
         setError("Alex n'est pas disponible pour l'instant. Vérifie ta connexion.");
       });
-  }, [applyResponse, userState]);
+  }, [applyResponse]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sendMessage = useCallback(
     async (text: string) => {

@@ -1763,7 +1763,7 @@ export default function App() {
   // ── V3 state ──────────────────────────────────────────────────────────────
   const [cluster, setCluster] = useState<Cluster>("cluster_2");
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
-  const [totalMonthlyBudget, setTotalMonthlyBudget] = useState(200);
+  const [totalMonthlyBudget, setTotalMonthlyBudget] = useState(500);
   const [declaredGoal, setDeclaredGoal] = useState("voyage");
   const [incomeBracket, setIncomeBracket] = useState<IncomeBracket>("medium");
   const [activeV3GoalId, setActiveV3GoalId] = useState<string | null>(null);
@@ -2173,7 +2173,7 @@ export default function App() {
       setDeclaredGoal("voyage");
       setIncomeBracket("medium");
       setUserAge(28);
-      setTotalMonthlyBudget(200);
+      setTotalMonthlyBudget(500);
       setShowNotif(false);
       setNotifGoal(null);
       setPrefill(null);
