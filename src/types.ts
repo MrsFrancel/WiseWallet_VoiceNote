@@ -40,6 +40,8 @@ export type UserState = {
   reactivationEmailSent: boolean;
 };
 
+export type AlexMode = "cluster2" | "cluster3_actif" | "cluster3_passif";
+
 declare global {
   interface Window {
     voiceflow?: {

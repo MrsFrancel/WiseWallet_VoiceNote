@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { DebugPanel } from "../components/DebugPanel";
-import type { SavingsGoal, Cluster, IncomeBracket } from "../types";
+import type { SavingsGoal, Cluster, IncomeBracket, AlexMode } from "../types";
 
 // ── Exported types — imported by App.tsx and DebugPanel.tsx ───────────────
 
@@ -16,6 +16,7 @@ export type DebugState = {
   lastActiveDate: string | null;
   savingsGoals: SavingsGoal[];
   totalMonthlyBudget: number;
+  alexFlow: AlexMode;
 };
 
 export type DebugActions = {
@@ -38,6 +39,7 @@ export type DebugActions = {
   simulateCluster3J14: () => void;
   resetFeature: () => void;
   resetAll: () => void;
+  setAlexFlow: (f: AlexMode) => void;
 };
 
 type Props = {

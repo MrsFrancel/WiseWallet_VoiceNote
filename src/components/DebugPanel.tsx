@@ -219,6 +219,39 @@ export function DebugPanel({ state, actions, onClose, activeTab, onTabChange }: 
         <ValidationPanel />
       ) : (
         <>
+          {/* ── Section 0 : Flow Alex ── */}
+          <SectionTitle>🤖 Flow Alex à tester</SectionTitle>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
+            {([
+              { flow: "cluster2",         label: "Client Non-identifié",          sub: "cluster_2 · profil complet (prénom → âge → revenus → projets…)" },
+              { flow: "cluster3_actif",   label: "Richard — Voyage 2 500 €",      sub: "cluster_3 actif · suggestion pré-remplie 9 mois / 278 €/mois" },
+              { flow: "cluster3_passif",  label: "Richard — Générique 1 800 €",   sub: "cluster_3 passif · projection 150 €/mois → 1 800 € en 12 mois" },
+            ] as const).map(({ flow, label, sub }) => {
+              const isActive = state.alexFlow === flow;
+              return (
+                <button
+                  key={flow}
+                  onClick={() => actions.setAlexFlow(flow)}
+                  style={{
+                    textAlign: "left",
+                    padding: "9px 11px",
+                    borderRadius: 10,
+                    border: `2px solid ${isActive ? BLU : BDR}`,
+                    background: isActive ? "#CECEFF" : SURF,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 700, color: isActive ? BLU : DARK }}>{label}</div>
+                  <div style={{ fontSize: 10, color: TEXT2, marginTop: 2 }}>{sub}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          <Divider />
+
           {/* ── Section 1 : Profil utilisateur ── */}
           <SectionTitle>① Profil utilisateur</SectionTitle>
 

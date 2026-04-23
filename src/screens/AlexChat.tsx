@@ -1,58 +1,61 @@
 import { useState, useEffect, useRef, useCallback, type KeyboardEvent } from "react";
 import { DT } from "../types";
 import { AITypingIndicator } from "../components/AITypingIndicator";
-import { getStep, initCtx, afterValidation } from "../constants/alexFlows";
+import { getStep, getStartId, initCtx } from "../constants/alexFlows";
 import type { AlexCtx, ValidationCard } from "../constants/alexFlows";
-import type { UserState } from "../types";
+import type { AlexMode } from "../types";
 
-type TextMsg  = { id: string; role: "ai" | "user"; kind: "text"; text: string };
-type CardMsg  = { id: string; role: "ai"; kind: "card"; card: ValidationCard };
-type ChatMsg  = TextMsg | CardMsg;
+type TextMsg = { id: string; role: "ai" | "user"; kind: "text"; text: string };
+type CardMsg = { id: string; role: "ai"; kind: "card"; card: ValidationCard };
+type ChatMsg = TextMsg | CardMsg;
 
 type Props = {
   onBack: () => void;
-  userState?: UserState;
+  flow: AlexMode;
 };
 
 const pause = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-export function AlexChat({ onBack, userState }: Props) {
-  const mode = userState?.cluster === "cluster_3" ? "cluster3" : "cluster2";
-  const startId = mode === "cluster3" ? "richard" : "welcome";
+export function AlexChat({ onBack, flow }: Props) {
+  const [messages,   setMessages]   = useState<ChatMsg[]>([]);
+  const [buttons,    setButtons]    = useState<string[]>([]);
+  const [multiOpts,  setMultiOpts]  = useState<string[]>([]);
+  const [multiSel,   setMultiSel]   = useState<string[]>([]);
+  const [inputText,  setInputText]  = useState("");
+  const [typing,     setTyping]     = useState(false);
+  const [ended,      setEnded]      = useState(false);
+  const [activeCard, setActiveCard] = useState<ValidationCard | null>(null);
 
-  const [messages,      setMessages]      = useState<ChatMsg[]>([]);
-  const [buttons,       setButtons]       = useState<string[]>([]);
-  const [multiOpts,     setMultiOpts]     = useState<string[]>([]);
-  const [multiSel,      setMultiSel]      = useState<string[]>([]);
-  const [inputText,     setInputText]     = useState("");
-  const [typing,        setTyping]        = useState(false);
-  const [ended,         setEnded]         = useState(false);
-  const [activeCard,    setActiveCard]    = useState<ValidationCard | null>(null);
-  const [pendingCard,   setPendingCard]   = useState<ValidationCard | null>(null);
-
-  const ctxRef    = useRef<AlexCtx>(initCtx(mode));
-  const stepRef   = useRef<string>(startId);
+  const ctxRef    = useRef<AlexCtx>(initCtx(flow));
+  const stepRef   = useRef<string>(getStartId(flow));
   const mounted   = useRef(true);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { return () => { mounted.current = false; }; }, []);
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing, buttons, multiOpts]);
 
-  // Affiche une séquence de messages l'un après l'autre
   const showMessages = useCallback(async (texts: string[]) => {
     for (let i = 0; i < texts.length; i++) {
       if (!mounted.current) return;
-      if (i > 0) { setTyping(true); await pause(750); if (!mounted.current) return; setTyping(false); }
-      setMessages((prev) => [...prev, { id: `ai-${Date.now()}-${i}`, role: "ai", kind: "text", text: texts[i] }]);
+      if (i > 0) {
+        setTyping(true);
+        await pause(750);
+        if (!mounted.current) return;
+        setTyping(false);
+      }
+      setMessages((prev) => [
+        ...prev,
+        { id: `ai-${Date.now()}-${i}`, role: "ai", kind: "text", text: texts[i] },
+      ]);
     }
   }, []);
 
-  // Présente l'étape courante (messages + boutons/input)
   const presentStep = useCallback(async (id: string, ctx: AlexCtx) => {
     if (!mounted.current) return;
+    if (id === "end") { setEnded(true); return; }
+
     const step = getStep(id);
     if (!step) { setEnded(true); return; }
 
@@ -67,13 +70,29 @@ export function AlexChat({ onBack, userState }: Props) {
 
     if (!mounted.current) return;
 
-    // Step autoAvance : pas d'input utilisateur, on enchaîne directement
-    if (step.autoAdvance) {
+    // Résoudre autoAdvance (boolean ou function)
+    const shouldAutoAdvance = typeof step.autoAdvance === "function"
+      ? step.autoAdvance(ctx)
+      : !!step.autoAdvance;
+
+    if (shouldAutoAdvance) {
       await pause(600);
       if (!mounted.current) return;
-      const { nextId, ctx: newCtx } = step.onInput("", ctx);
-      ctxRef.current = newCtx;
+      const { nextId, ctx: newCtx, card } = step.onInput("", ctx);
+      ctxRef.current  = newCtx;
       stepRef.current = nextId;
+      if (card) {
+        setTyping(true);
+        await pause(700);
+        if (!mounted.current) return;
+        setTyping(false);
+        setMessages((prev) => [
+          ...prev,
+          { id: `card-${Date.now()}`, role: "ai", kind: "card", card },
+        ]);
+        setActiveCard(card);
+        return;
+      }
       await presentStep(nextId, newCtx);
       return;
     }
@@ -92,84 +111,80 @@ export function AlexChat({ onBack, userState }: Props) {
     }
   }, [showMessages]);
 
-  // Lancement au montage
   useEffect(() => {
-    presentStep(startId, ctxRef.current);
-  }, [presentStep, startId]);
+    presentStep(getStartId(flow), ctxRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Traitement d'une réponse utilisateur (texte ou bouton)
   const handleInput = useCallback(async (input: string) => {
-    if (!mounted.current) return;
+    if (!mounted.current || ended) return;
     const step = getStep(stepRef.current);
-    if (!step || ended) return;
+    if (!step) return;
 
-    // Affiche la bulle utilisateur
-    setMessages((prev) => [...prev, { id: `user-${Date.now()}`, role: "user", kind: "text", text: input }]);
+    setMessages((prev) => [
+      ...prev,
+      { id: `user-${Date.now()}`, role: "user", kind: "text", text: input },
+    ]);
     setButtons([]);
     setMultiOpts([]);
     setInputText("");
 
     const { nextId, ctx, card } = step.onInput(input, ctxRef.current);
-    ctxRef.current = ctx;
+    ctxRef.current  = ctx;
+    stepRef.current = nextId;
 
     if (card) {
-      // Affichage de la carte de validation
       setTyping(true);
       await pause(800);
       if (!mounted.current) return;
       setTyping(false);
-      setMessages((prev) => [...prev, { id: `card-${Date.now()}`, role: "ai", kind: "card", card }]);
+      setMessages((prev) => [
+        ...prev,
+        { id: `card-${Date.now()}`, role: "ai", kind: "card", card },
+      ]);
       setActiveCard(card);
-      stepRef.current = nextId; // on garde nextId pour savoir où reprendre si ✏️
-      return;
-    }
-
-    stepRef.current = nextId;
-
-    if (nextId === "end") { setEnded(true); return; }
-    if (nextId === "show_card") {
-      // buildValidationCard a produit un card mais sans le retourner via card prop — ne devrait pas arriver
       return;
     }
 
     await presentStep(nextId, ctx);
   }, [ended, presentStep]);
 
-  // Validation ou modification d'une carte
   const handleCardAction = useCallback(async (card: ValidationCard, action: "validate" | "edit") => {
     setActiveCard(null);
-    setMessages((prev) => [...prev, {
-      id: `user-card-${Date.now()}`, role: "user", kind: "text",
-      text: action === "validate" ? "✓ C'est bon" : "✏️ Je veux modifier",
-    }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `user-card-${Date.now()}`,
+        role: "user",
+        kind: "text",
+        text: action === "validate" ? card.buttons[0] : card.buttons[1],
+      },
+    ]);
 
     if (action === "edit") {
-      // Retour à l'étape budget du projet courant
       stepRef.current = card.onEdit;
       await presentStep(card.onEdit, ctxRef.current);
     } else {
-      // Projet validé → suivant ou notifications
-      const { nextId, ctx } = afterValidation(ctxRef.current);
-      ctxRef.current = ctx;
-      stepRef.current = nextId;
-      await presentStep(nextId, ctx);
+      stepRef.current = card.onValidate;
+      await presentStep(card.onValidate, ctxRef.current);
     }
   }, [presentStep]);
 
-  // Multi-select : toggle
   const toggleMulti = (opt: string) => {
     setMultiSel((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]);
   };
 
   const confirmMulti = () => {
     if (multiSel.length === 0) return;
-    const input = JSON.stringify(multiSel);
     setMultiOpts([]);
-    handleInput(input);
+    handleInput(JSON.stringify(multiSel));
   };
 
   const step = getStep(stepRef.current);
   const isTextInput = !ended && !activeCard && buttons.length === 0 && multiOpts.length === 0 && step?.buttons === null;
+
+  // Label du flow pour l'en-tête
+  const flowLabel = flow === "cluster3_actif" ? "Richard — Voyage" : flow === "cluster3_passif" ? "Richard — Générique" : "Client Non-identifié";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: DT.bg }}>
@@ -177,10 +192,11 @@ export function AlexChat({ onBack, userState }: Props) {
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 20px", background: DT.surface, boxShadow: "0 1px 0 " + DT.border, flexShrink: 0 }}>
         <button onClick={onBack} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: DT.text, padding: 0, lineHeight: 1 }}>←</button>
         <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg, #6C63FF, #897FFF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>💼</div>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: DT.text }}>Alex</div>
           <div style={{ fontSize: 11, color: DT.success, fontWeight: 500 }}>● Conseiller WiseWallet</div>
         </div>
+        <div style={{ fontSize: 10, color: DT.text2, background: DT.border, borderRadius: 6, padding: "3px 7px" }}>{flowLabel}</div>
       </div>
 
       {/* Messages */}
@@ -207,7 +223,6 @@ export function AlexChat({ onBack, userState }: Props) {
             </button>
           </div>
         ) : multiOpts.length > 0 ? (
-          /* Multi-select projets */
           <div style={{ padding: "10px 12px" }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
               {multiOpts.map((opt) => {
@@ -221,14 +236,12 @@ export function AlexChat({ onBack, userState }: Props) {
               })}
             </div>
             {multiSel.length > 0 && (
-              <button onClick={confirmMulti}
-                style={{ width: "100%", padding: "12px 0", borderRadius: DT.r.button, background: "#6C63FF", color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer" }}>
+              <button onClick={confirmMulti} style={{ width: "100%", padding: "12px 0", borderRadius: DT.r.button, background: "#6C63FF", color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer" }}>
                 Valider ({multiSel.length} projet{multiSel.length > 1 ? "s" : ""}) →
               </button>
             )}
           </div>
         ) : buttons.length > 0 && !typing ? (
-          /* Boutons simples */
           <div style={{ padding: "10px 12px", display: "flex", flexWrap: "wrap", gap: 8 }}>
             {buttons.map((b) => (
               <button key={b} onClick={() => handleInput(b)}
@@ -238,7 +251,6 @@ export function AlexChat({ onBack, userState }: Props) {
             ))}
           </div>
         ) : isTextInput && !typing ? (
-          /* Champ texte libre */
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px" }}>
             <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => { if (e.key === "Enter" && inputText.trim()) handleInput(inputText.trim()); }}
@@ -255,7 +267,7 @@ export function AlexChat({ onBack, userState }: Props) {
   );
 }
 
-// ── Composants ────────────────────────────────────────────────────────────
+// ── Composants ─────────────────────────────────────────────────────────────
 
 function RichText({ text }: { text: string }) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
@@ -303,9 +315,9 @@ function CardBubble({ card, isActive, onAction }: {
           <div style={{ color: "#fff", fontSize: 16, fontWeight: 700 }}>{card.title}</div>
         </div>
         <div style={{ padding: "12px 16px" }}>
-          <div style={{ fontSize: 13, color: DT.text, lineHeight: 1.8, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
+          <pre style={{ fontSize: 13, color: DT.text, lineHeight: 1.8, margin: 0, fontFamily: "inherit", whiteSpace: "pre-wrap" }}>
             {card.body}
-          </div>
+          </pre>
         </div>
         {isActive && (
           <>

@@ -13,7 +13,7 @@ import { AllocationPlan } from "../screens/AllocationPlan";
 import { V3GoalDetail } from "../screens/V3GoalDetail";
 import { GoalCardV3 } from "../components/GoalCardV3";
 import { ProgressNotificationBanner } from "../components/ProgressNotificationBanner";
-import type { SavingsGoal, UserState, IncomeBracket, Cluster } from "../types";
+import type { SavingsGoal, UserState, IncomeBracket, Cluster, AlexMode } from "../types";
 import { buildPrefillGoal, matchTemplate, GOAL_TILES } from "../constants/goalTemplates";
 import { allocateBudget, fmtAmount as fmtAmt, pct as calcPct } from "../utils/goalCalculations";
 import confetti from "canvas-confetti";
@@ -1774,6 +1774,7 @@ export default function App() {
   const [firstTransactionCategorized, setFirstTransactionCategorized] = useState(false);
   const [firstTransactionDate, setFirstTransactionDate] = useState<string | null>(null);
   const [lastActiveDate, setLastActiveDate] = useState<string | null>(null);
+  const [alexFlow, setAlexFlow] = useState<AlexMode>("cluster2");
 
   // V3 userState object for child components
   const userState: UserState = {
@@ -1794,7 +1795,7 @@ export default function App() {
 
   const openAlex = useCallback(() => {
     go("alexChat");
-  }, []);
+  }, [alexFlow]);
 
   // Add a V3 savings goal (from enrichment or tile selection)
   const addSavingsGoal = (goal: SavingsGoal) => {
@@ -2083,7 +2084,7 @@ export default function App() {
           />
         );
       case "alexChat":
-        return <AlexChat onBack={() => go("home")} userState={userState} />;
+        return <AlexChat onBack={() => go("home")} flow={alexFlow} />;
     }
   };
 
@@ -2106,6 +2107,7 @@ export default function App() {
     lastActiveDate,
     savingsGoals,
     totalMonthlyBudget,
+    alexFlow,
   };
 
   const debugActions: DebugActions = {
@@ -2119,6 +2121,7 @@ export default function App() {
     setFirstTransactionDate,
     setLastActiveDate,
     setSavingsGoals,
+    setAlexFlow,
 
     triggerProgressNotif: (_type) => {
       const goal = savingsGoals[0];
