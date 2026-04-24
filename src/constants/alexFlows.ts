@@ -795,6 +795,7 @@ const steps: AlexStep[] = [
       }),
     ],
     buttons: null,
+    autoAdvance: true,
     onInput: (_i, ctx) => ({ nextId: "end", ctx }),
   },
 

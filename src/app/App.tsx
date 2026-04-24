@@ -2186,6 +2186,42 @@ export default function App() {
     },
   };
 
+  // ── Click hint (Figma-style : zones cliquables en surbrillance) ──────────
+  const [showHints, setShowHints] = useState(false);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const id = "ww-hints-style";
+    if (!document.getElementById(id)) {
+      const s = document.createElement("style");
+      s.id = id;
+      s.textContent = `
+        @keyframes ww-hint {
+          0%   { outline: 2.5px solid transparent; outline-offset: 3px; }
+          40%  { outline: 2.5px solid #C9FF27;     outline-offset: 3px; box-shadow: 0 0 0 4px rgba(201,255,39,.28); }
+          100% { outline: 2.5px solid transparent; outline-offset: 3px; }
+        }
+        .ww-hints button:not([disabled]),
+        .ww-hints [role="button"] {
+          animation: ww-hint .55s ease forwards !important;
+        }
+      `;
+      document.head.appendChild(s);
+    }
+    return () => { if (hintTimer.current) clearTimeout(hintTimer.current); };
+  }, []);
+
+  const handlePhoneClick = (e: React.MouseEvent) => {
+    const interactive = (e.target as HTMLElement).closest(
+      "button, input, select, textarea, a, [role='button'], label"
+    );
+    if (!interactive) {
+      setShowHints(true);
+      if (hintTimer.current) clearTimeout(hintTimer.current);
+      hintTimer.current = setTimeout(() => setShowHints(false), 600);
+    }
+  };
+
   // ── App frame ──────────────────────────────────────────────────────────
   const appFrame = (
     <div
@@ -2193,8 +2229,9 @@ export default function App() {
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <div
-        className="relative overflow-hidden phone-frame"
+        className={`relative overflow-hidden phone-frame${showHints ? " ww-hints" : ""}`}
         style={{ background: C.bg }}
+        onClick={handlePhoneClick}
       >
         <div className="h-full flex flex-col">{render()}</div>
 
