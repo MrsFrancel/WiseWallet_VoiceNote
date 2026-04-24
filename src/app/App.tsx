@@ -366,20 +366,35 @@ const CATEGORIES: { icon: LucideIcon; l: string }[] = [
   { icon: Zap, l: "Urgence" }, { icon: GraduationCap, l: "Formation" }, { icon: Star, l: "Autre" },
 ];
 
+// ── WiseLogo SVG ──────────────────────────────────────────────────────────
+function WiseLogo({ size = 64 }: { size?: number }) {
+  const h = Math.round(size * 68.5 / 92.43);
+  return (
+    <svg width={size} height={h} viewBox="0 0 92.43 68.5" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#040707" d="M16.7,58.85C10.56,48.05,5.73,37.8.87,26.93c-3.21-7.18,2.98-14.66,9.51-16.26,7.48-1.83,14.38,2.24,16.75,10.83l8.02-15.87C38.16-.31,46.21-1.25,51.68,1.41c5.12,2.48,9.77,9.2,6.85,15.72-6.31,14.11-12.53,27.53-19.75,41.42-3.84,7.39-17.74,7.93-22.08.3Z"/>
+      <path fill="#C9FF27" d="M91.53,21.3c-4.34,9.71-8.63,19.08-13.24,28.5l-.09.18c-2.07,4.22-4.2,8.46-6.42,12.74-.02.04-.04.08-.07.12l-.03.06c-.14.25-.29.49-.45.73-2.15,3.14-6.26,4.81-10.42,4.87-1.98-.08-3.95-.56-5.66-1.39-5.11-2.48-9.76-9.2-6.85-15.71,4.34-9.7,8.63-19.08,13.24-28.5h.01s6.58-13.04,6.58-13.04c.01-.02.02-.04.03-.06.15-.27.31-.54.49-.79,2.21-3.49,6.32-5,10.38-4.81,1.98.08,3.94.56,5.65,1.39,5.11,2.48,9.77,9.2,6.85,15.71Z"/>
+    </svg>
+  );
+}
+
 // ---------- screens ----------
 // ── Coin SVG (design system : lime #C9FF27 / dark #040707) ──
 function CoinSVG({ size = 64, dark = false }: { size?: number; dark?: boolean }) {
   const bg = dark ? C.dark    : C.primary;
   const fg = dark ? C.primary : C.dark;
+  // Logo centré dans la pièce (92.43×68.5 → ~40×30px dans un cercle de 64)
+  const scale = 0.43;
+  const lw = 92.43 * scale, lh = 68.5 * scale;
+  const tx = (64 - lw) / 2, ty = (64 - lh) / 2;
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={size} height={size} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
       <circle cx="32" cy="32" r="30" fill={bg} />
-      <circle cx="32" cy="32" r="30" stroke={fg} strokeWidth="2.5" />
-      <circle cx="32" cy="32" r="22" stroke={fg} strokeWidth="1.5" opacity="0.5" />
-      <path d="M16 21L23.5 43L32 28L40.5 43L48 21"
-        stroke={fg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <ellipse cx="22" cy="20" rx="9" ry="4.5" fill="white" opacity="0.2"
-        transform="rotate(-35 22 20)" />
+      <circle cx="32" cy="32" r="30" stroke={fg} strokeWidth="2.5" fill="none" />
+      <g transform={`translate(${tx.toFixed(1)},${ty.toFixed(1)}) scale(${scale})`}>
+        <path fill={fg} d="M16.7,58.85C10.56,48.05,5.73,37.8.87,26.93c-3.21-7.18,2.98-14.66,9.51-16.26,7.48-1.83,14.38,2.24,16.75,10.83l8.02-15.87C38.16-.31,46.21-1.25,51.68,1.41c5.12,2.48,9.77,9.2,6.85,15.72-6.31,14.11-12.53,27.53-19.75,41.42-3.84,7.39-17.74,7.93-22.08.3Z"/>
+        <path fill={fg} d="M91.53,21.3c-4.34,9.71-8.63,19.08-13.24,28.5l-.09.18c-2.07,4.22-4.2,8.46-6.42,12.74-.02.04-.04.08-.07.12l-.03.06c-.14.25-.29.49-.45.73-2.15,3.14-6.26,4.81-10.42,4.87-1.98-.08-3.95-.56-5.66-1.39-5.11-2.48-9.76-9.2-6.85-15.71,4.34-9.7,8.63-19.08,13.24-28.5h.01s6.58-13.04,6.58-13.04c.01-.02.02-.04.03-.06.15-.27.31-.54.49-.79,2.21-3.49,6.32-5,10.38-4.81,1.98.08,3.94.56,5.65,1.39,5.11,2.48,9.77,9.2,6.85,15.71Z"/>
+      </g>
+      <ellipse cx="22" cy="20" rx="9" ry="4.5" fill="white" opacity="0.2" transform="rotate(-35 22 20)" />
     </svg>
   );
 }
@@ -493,10 +508,8 @@ function WelcomeScreen({ go }: { go: (s: Screen) => void }) {
       <div className="relative flex flex-col h-full" style={{ zIndex: 1 }}>
         <StatusBar />
         <div className="flex-1 flex flex-col items-center justify-center px-6">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ background: C.primary }}>
-            <div className="w-8 h-6 rounded-md border-2" style={{ borderColor: C.onPrimary }} />
-          </div>
-          <div style={{ color: C.text, fontSize: 32, fontWeight: 800, letterSpacing: -0.5, fontFamily: "Brunson, sans-serif" }}>WiseWallet</div>
+          <WiseLogo size={110} />
+          <div style={{ color: C.text, fontSize: 32, fontWeight: 800, letterSpacing: -0.5, fontFamily: "Brunson, sans-serif", marginTop: 20 }}>WiseWallet</div>
           <div className="mt-12 text-center" style={{ color: C.text, fontSize: 36, fontWeight: 800, fontFamily: "Brunson, sans-serif", lineHeight: 1.1 }}>
             Gérez. Épargnez. <span style={{ color: C.secondary }}>Atteignez.</span>
           </div>
