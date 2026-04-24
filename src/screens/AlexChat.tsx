@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, type KeyboardEvent } from "react";
+import { Bot } from "lucide-react";
 import { DT } from "../types";
 import { AITypingIndicator } from "../components/AITypingIndicator";
 import { getStep, getStartId, initCtx } from "../constants/alexFlows";
@@ -191,7 +192,7 @@ export function AlexChat({ onBack, flow }: Props) {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 20px", background: DT.surface, boxShadow: "0 1px 0 " + DT.border, flexShrink: 0 }}>
         <button onClick={onBack} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: DT.text, padding: 0, lineHeight: 1 }}>←</button>
-        <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg, #6C63FF, #897FFF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>💼</div>
+        <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg, #6C63FF, #897FFF)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Bot size={18} color="#fff" strokeWidth={1.8} /></div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: DT.text }}>Alex</div>
           <div style={{ fontSize: 11, color: DT.success, fontWeight: 500 }}>● Conseiller WiseWallet</div>
@@ -285,7 +286,7 @@ function RichText({ text }: { text: string }) {
 function AIBubble({ text }: { text: string }) {
   return (
     <div style={{ display: "flex", alignItems: "flex-end", gap: 8, padding: "4px 16px", marginBottom: 4 }}>
-      <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #6C63FF, #897FFF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>💼</div>
+      <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #6C63FF, #897FFF)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Bot size={15} color="#fff" strokeWidth={1.8} /></div>
       <div style={{ maxWidth: "75%", padding: "10px 14px", borderRadius: "18px 18px 18px 4px", background: DT.surface, boxShadow: DT.cardShadow, fontSize: 14, color: DT.text, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>
         <RichText text={text} />
       </div>

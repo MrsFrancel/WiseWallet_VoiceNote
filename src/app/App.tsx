@@ -20,7 +20,7 @@ import confetti from "canvas-confetti";
 import {
   ArrowLeft, Bell, ArrowUpRight, ArrowDownLeft, Target, MoreHorizontal,
   Home, Receipt, BarChart3, User, ChevronRight, ChevronDown, Plus,
-  Eye, EyeOff, Pencil, Delete, LogOut, PieChart, Check, Sparkles,
+  Eye, EyeOff, Pencil, Delete, LogOut, PieChart, Check, Sparkles, Bot,
   ShoppingCart, Film, Banknote, Car, Pill, ShoppingBag,
   Plane, Building, Zap, GraduationCap, Star, Trophy, Archive,
 } from "lucide-react";
@@ -38,29 +38,29 @@ type Screen =
   | "alexChat";
 
 const C = {
-  bg: "#F5F5F5",
-  surface: "#FFFFFF",
-  card: "#FFFFFF",
-  primary: "#C9FF27",
-  primarySoft: "#F0FFAA",
-  primaryDark: "#8AB800",
-  onPrimary: "#040707",
-  link: "#0404E2",
-  linkSoft: "#CECEFF",
-  secondary: "#0404E2",
-  text: "#040707",
-  text2: "#7A7A7A",
-  danger: "#EF4444",
-  dangerSoft: "#FFF5F5",
-  success: "#00B14F",
-  successSoft: "#E6F7EE",
-  border: "#E8E8E8",
+  bg:           "#F5F5F5",
+  surface:      "#FFFFFF",
+  card:         "#FFFFFF",
+  primary:      "#C9FF27",
+  primarySoft:  "#F0FFAA",
+  primaryDark:  "#C9FF27",
+  onPrimary:    "#040707",
+  link:         "#0404E2",
+  linkSoft:     "#CECEFF",
+  secondary:    "#0404E2",
+  text:         "#040707",
+  text2:        "#7A7A7A",
+  danger:       "#EF4444",
+  dangerSoft:   "#FFF5F5",
+  success:      "#00B14F",
+  successSoft:  "#E6F7EE",
+  border:       "#E8E8E8",
   borderStrong: "#BEBEBE",
-  dark: "#040707",
+  dark:         "#040707",
 };
 
 const SHADOW = "inset 0 0 0 1px #E8E8E8";
-const SHADOW_LG = "none";
+const SHADOW_LG = "0 8px 32px rgba(0,0,0,0.08)";
 
 // ── V2 design tokens (cluster_2 / Épargnants Passifs feature) ──
 const V2C = {
@@ -304,13 +304,10 @@ function BottomNav({ active, go }: { active: Screen; go: (s: Screen) => void }) 
           const Icon = t.icon;
           return (
             <button key={t.key} onClick={() => { playClick(); go(t.key); }} aria-label={t.label} aria-current={isActive ? "page" : undefined} className="flex flex-col items-center gap-1 flex-1 transition active:scale-95">
-              <Icon
-                size={ICON}
-                color={isActive ? C.onPrimary : C.text2}
-                strokeWidth={isActive ? 2 : STROKE}
-                fill={isActive ? C.primary : "none"}
-              />
-              <span aria-hidden="true" style={{ color: isActive ? C.onPrimary : C.text2, fontSize: 11, fontWeight: isActive ? 600 : 500 }}>{t.label}</span>
+              <div style={{ width: 48, height: 30, borderRadius: 15, background: isActive ? C.primary : "transparent", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}>
+                <Icon size={20} color={isActive ? C.onPrimary : C.text2} strokeWidth={isActive ? 2 : STROKE} fill="none" />
+              </div>
+              <span aria-hidden="true" style={{ color: isActive ? C.dark : C.text2, fontSize: 11, fontWeight: isActive ? 700 : 500 }}>{t.label}</span>
             </button>
           );
         })}
@@ -329,8 +326,8 @@ function TxRow({ t, onClick }: { t: Tx; onClick?: () => void }) {
   const amountLabel = `${positive ? "Crédit" : "Débit"} : ${Math.abs(t.amount).toFixed(2).replace(".", ",")}€`;
   return (
     <button onClick={() => { playClick(); onClick?.(); }} aria-label={`${t.merchant}, ${t.cat}, ${amountLabel}`} className="w-full flex items-center gap-3 py-3 transition active:scale-[0.99]">
-      <div className="w-10 h-10 rounded-full flex items-center justify-center" aria-hidden="true" style={{ background: `${t.color}1A` }}>
-        <TxIcon size={18} color={t.color} strokeWidth={STROKE} fill="none" />
+      <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true" style={{ background: t.color }}>
+        <TxIcon size={18} color="#fff" strokeWidth={STROKE} fill="none" />
       </div>
       <div className="flex-1 text-left">
         <div style={{ color: C.text, fontSize: 15, fontWeight: 500 }}>{t.merchant}</div>
@@ -580,108 +577,125 @@ function HomeScreen({ go, firstName, goals, onOpenAlex }: { go: (s: Screen) => v
   const initial = (firstName || "A")[0].toUpperCase();
   const balance = useCountUp(284700, 1400);
   return (
-    <div className="flex flex-col h-full screen-enter" style={{ background: C.bg }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: C.bg, overflow: "hidden" }}>
       <StatusBar />
-      <div className="flex items-center justify-between px-6 pt-2 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: C.primary, color: C.onPrimary, fontWeight: 600 }}>{initial}</div>
-          <div style={{ color: C.text, fontSize: 22, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Bonjour, {firstName || "Richard"} 👋</div>
+
+      {/* ── HEADER ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 24px 14px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 44, height: 44, borderRadius: "50%", background: C.primary, color: C.onPrimary, fontWeight: 700, fontSize: 17, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            {initial}
+          </div>
+          <div>
+            <div style={{ color: C.text2, fontSize: 12, lineHeight: 1.2 }}>Bonjour,</div>
+            <div style={{ color: C.text, fontSize: 17, fontWeight: 700, fontFamily: "Brunson, sans-serif", lineHeight: 1.2 }}>{firstName || "Richard"} 👋</div>
+          </div>
         </div>
-        <button onClick={() => { playClick(); go("notifications"); }} aria-label="Notifications — nouvelles alertes disponibles" className="relative w-11 h-11 rounded-full flex items-center justify-center transition active:scale-95" style={{ background: C.surface, boxShadow: SHADOW }}>
-          <Bell size={ICON} strokeWidth={STROKE} color={C.text} fill="none" />
-          <div aria-hidden="true" className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ background: C.primary }} />
+        <button onClick={() => { playClick(); go("notifications"); }} aria-label="Notifications" style={{ width: 44, height: 44, borderRadius: "50%", background: C.surface, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative", flexShrink: 0 }}>
+          <Bell size={20} strokeWidth={STROKE} color={C.text2} fill="none" />
+          <div aria-hidden="true" style={{ position: "absolute", top: 11, right: 11, width: 7, height: 7, borderRadius: "50%", background: C.primary, border: `2px solid ${C.bg}` }} />
         </button>
       </div>
-      <ScreenBody>
-        <div className="px-6">
-          <div className="rounded-[20px] p-5" style={{ background: C.card, boxShadow: SHADOW }}>
-            <div style={{ color: C.text2, fontSize: 12 }}>Solde disponible</div>
-            <div aria-live="polite" aria-atomic="true" aria-label={`Solde disponible : ${(balance / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} euros`} style={{ color: C.text, fontSize: 32, fontWeight: 700, letterSpacing: -0.5 , fontFamily: "Brunson, sans-serif" }} className="mt-2">
-              {(balance / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-            </div>
-            <div className="flex items-center justify-between mt-3">
-              <div>
-                <span style={{ color: C.text2, fontSize: 12 }}>Ce mois-ci </span>
-                <span style={{ color: C.danger, fontSize: 15, fontWeight: 600 }}>-342,00 €</span>
-              </div>
-              <div className="px-3 py-1 rounded-full" style={{ background: C.successSoft, color: C.success, fontSize: 12, fontWeight: 600 }}>+3,2%</div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-4 gap-2 mt-5">
-            {[
-              { icon: ArrowUpRight, label: "Virer" },
-              { icon: ArrowDownLeft, label: "Recevoir" },
-              { icon: BarChart3, label: "Analyser" },
-              { icon: MoreHorizontal, label: "Plus" },
-            ].map((a) => (
-              <button key={a.label} onClick={() => playClick()} className="h-16 rounded-[14px] flex flex-col items-center justify-center gap-1 transition active:scale-95 active:bg-[#F0FFAA]" style={{ background: C.surface, boxShadow: SHADOW }}>
-                <a.icon size={ICON} strokeWidth={STROKE} color={C.text} fill="none" />
-                <span style={{ color: C.text, fontSize: 12 }}>{a.label}</span>
-              </button>
-            ))}
+      {/* ── BALANCE ── */}
+      <div style={{ padding: "0 24px 14px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+          <span style={{ color: C.text2, fontSize: 13 }}>Mon Solde</span>
+          <button onClick={() => { playClick(); go("analysis"); }} style={{ display: "flex", alignItems: "center", gap: 6, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: "5px 12px", cursor: "pointer" }}>
+            <BarChart3 size={13} color={C.text2} strokeWidth={STROKE} />
+            <span style={{ color: C.text2, fontSize: 12, fontWeight: 500 }}>Statistiques</span>
+          </button>
+        </div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+          <span style={{ color: C.primaryDark, fontSize: 22, fontWeight: 800 }}>€</span>
+          <span aria-live="polite" aria-atomic="true" style={{ color: C.text, fontSize: 40, fontWeight: 800, letterSpacing: -1.5, fontFamily: "Brunson, sans-serif", lineHeight: 1 }}>
+            {(balance / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+          <div style={{ background: C.successSoft, borderRadius: 100, padding: "3px 10px" }}>
+            <span style={{ color: C.success, fontSize: 12, fontWeight: 600 }}>+3,2% ce mois</span>
           </div>
+          <span style={{ color: C.text2, fontSize: 12 }}>· -342 € dépensés</span>
+        </div>
+      </div>
 
-          <div className="flex items-center justify-between mt-6 mb-2">
-            <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Transactions récentes</div>
-            <button onClick={() => { playClick(); go("transactions"); }} style={{ color: C.link, fontSize: 12, fontWeight: 500 }}>Voir tout</button>
+      {/* ── ACTIONS Virer / Recevoir ── */}
+      <div style={{ padding: "0 24px 14px", display: "flex", gap: 12 }}>
+        {[
+          { icon: ArrowUpRight,  label: "Virer" },
+          { icon: ArrowDownLeft, label: "Recevoir" },
+        ].map((a) => (
+          <button key={a.label} onClick={() => playClick()} style={{ flex: 1, height: 50, borderRadius: 100, background: C.surface, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer" }}>
+            <a.icon size={18} strokeWidth={STROKE} color={C.text} fill="none" />
+            <span style={{ color: C.text, fontSize: 15, fontWeight: 600 }}>{a.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* ── QUICK TILES : Alex + Récentes ── */}
+      <div style={{ padding: "0 24px 0", display: "flex", gap: 12 }}>
+        {onOpenAlex && (
+          <button onClick={() => { playClick(); onOpenAlex(); }} className="alex-shine" style={{ flex: 1, padding: "14px 10px", borderRadius: 20, background: C.surface, border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg,#6C63FF,#897FFF)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Bot size={22} color="#fff" strokeWidth={1.8} /></div>
+            <span style={{ color: C.text, fontSize: 12, fontWeight: 600 }}>Alex</span>
+          </button>
+        )}
+        <button onClick={() => { playClick(); go("transactions"); }} style={{ flex: 2.2, padding: "14px", borderRadius: 20, background: C.primary, display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "pointer", minHeight: 88 }}>
+          <span style={{ color: C.onPrimary, fontSize: 13, fontWeight: 700 }}>Transactions récentes</span>
+          <div style={{ display: "flex", marginTop: 10 }}>
+            {TXS.slice(0, 4).map((t, i) => {
+              const TIcon = t.icon;
+              return (
+                <div key={t.id} style={{ width: 30, height: 30, borderRadius: "50%", background: t.color, border: `2px solid ${C.primary}`, marginLeft: i > 0 ? -8 : 0, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <TIcon size={13} color="#fff" strokeWidth={2} fill="none" />
+                </div>
+              );
+            })}
+          </div>
+        </button>
+      </div>
+
+      {/* ── BOTTOM SHEET ── */}
+      <div style={{ flex: 1, background: C.surface, borderRadius: "24px 24px 0 0", marginTop: 16, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: C.border, margin: "12px auto 0", flexShrink: 0 }} />
+        <div style={{ flex: 1, overflowY: "auto", padding: "14px 20px 130px" }}>
+
+          {/* Transactions */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <span style={{ color: C.text, fontSize: 17, fontWeight: 700, fontFamily: "Brunson, sans-serif" }}>Transactions</span>
+            <button onClick={() => { playClick(); go("transactions"); }} style={{ color: C.link, fontSize: 13, fontWeight: 500, background: "none", border: "none", cursor: "pointer" }}>Voir tout</button>
           </div>
           {TXS.slice(0, 3).map((t, i) => (
-            <div key={t.id} style={{ animation: `slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${i * 60}ms both` }}>
+            <div key={t.id} style={{ animation: `slideUp 0.35s cubic-bezier(0.16,1,0.3,1) ${i * 60}ms both` }}>
               <TxRow t={t} onClick={() => go("txDetail")} />
             </div>
           ))}
 
-          {/* Alex CTA */}
-          {onOpenAlex && (
-            <button
-              onClick={() => { playClick(); onOpenAlex(); }}
-              className="w-full rounded-[20px] p-4 flex items-center gap-4 text-left transition active:scale-[0.99] mt-5"
-              style={{ background: "linear-gradient(135deg, #6C63FF 0%, #897FFF 100%)" }}
-            >
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
-                style={{ background: "rgba(255,255,255,0.2)" }}
-              >
-                💼
-              </div>
-              <div className="flex-1 min-w-0">
-                <div style={{ color: "#fff", fontSize: 15, fontWeight: 700, fontFamily: "Brunson, sans-serif" }}>
-                  Alex, ton conseiller épargne
-                </div>
-                <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, marginTop: 2 }}>
-                  Crée ton plan en quelques minutes ✨
-                </div>
-              </div>
-              <ChevronRight size={20} color="rgba(255,255,255,0.7)" strokeWidth={2} />
-            </button>
-          )}
-
-          <div className="flex items-center justify-between mt-6 mb-2">
-            <div style={{ color: C.text, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>Mes objectifs</div>
-            <button onClick={() => go("goalStep1")} aria-label="Créer un objectif" className="w-11 h-11 rounded-full flex items-center justify-center transition active:scale-95" style={{ background: C.primary }}>
-              <Plus size={16} strokeWidth={STROKE} color={C.onPrimary} />
+          {/* Objectifs */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 22, marginBottom: 10 }}>
+            <span style={{ color: C.text, fontSize: 17, fontWeight: 700, fontFamily: "Brunson, sans-serif" }}>Mes objectifs</span>
+            <button onClick={() => go("goalStep1")} aria-label="Créer un objectif" style={{ width: 34, height: 34, borderRadius: "50%", background: C.primary, display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer" }}>
+              <Plus size={15} strokeWidth={STROKE} color={C.onPrimary} />
             </button>
           </div>
-
           {goals.length === 0 ? (
-            <div
-              className="rounded-[20px] p-5 flex flex-col items-center text-center"
-              style={{ background: C.card, border: `1px dashed ${C.primary}` }}
-            >
-              <Archive size={32} color={C.text2} strokeWidth={STROKE} fill="none" />
-              <div style={{ color: C.text2, fontSize: 14 }} className="mt-2">Aucun objectif créé</div>
-              <button onClick={() => go("goalStep1")} style={{ color: C.link, fontSize: 14, fontWeight: 600 }} className="mt-2">
+            <div style={{ borderRadius: 16, padding: "18px 16px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", border: `1px dashed ${C.border}` }}>
+              <Archive size={28} color={C.text2} strokeWidth={STROKE} fill="none" />
+              <div style={{ color: C.text2, fontSize: 14, marginTop: 8 }}>Aucun objectif créé</div>
+              <button onClick={() => go("goalStep1")} style={{ color: C.link, fontSize: 14, fontWeight: 600, background: "none", border: "none", cursor: "pointer", marginTop: 6 }}>
                 Créer mon premier objectif
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {goals.map((g) => <GoalCard key={g.id} g={g} onClick={() => go("goalDetail")} />)}
             </div>
           )}
         </div>
-      </ScreenBody>
+      </div>
+
       <BottomNav active="home" go={go} />
     </div>
   );
@@ -696,9 +710,9 @@ function GoalCard({ g, onClick }: { g: Goal; onClick?: () => void }) {
     return () => clearTimeout(t);
   }, [pct]);
   return (
-    <button onClick={onClick} className="w-full rounded-[20px] p-4 flex items-center gap-3 text-left transition active:scale-[0.99]" style={{ background: C.card, boxShadow: SHADOW }}>
-      <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: C.primarySoft }}>
-        <GIcon size={24} color={C.secondary} strokeWidth={STROKE} fill="none" />
+    <button onClick={onClick} className="w-full rounded-[20px] p-4 flex items-center gap-3 text-left transition active:scale-[0.99]" style={{ background: C.bg, border: `1px solid ${C.border}` }}>
+      <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: C.primarySoft }}>
+        <GIcon size={24} color={C.primaryDark} strokeWidth={STROKE} fill="none" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
@@ -710,7 +724,7 @@ function GoalCard({ g, onClick }: { g: Goal; onClick?: () => void }) {
         </div>
         <div className="flex items-center justify-between mt-1.5">
           <div style={{ color: C.text2, fontSize: 11 }}>{g.saved.toLocaleString("fr-FR")} € / {g.amount.toLocaleString("fr-FR")} €</div>
-          <div style={{ color: C.link, fontSize: 11, fontWeight: 600 }}>{pct}%</div>
+          <div style={{ color: C.primaryDark, fontSize: 11, fontWeight: 600 }}>{pct}%</div>
         </div>
       </div>
     </button>
@@ -742,7 +756,7 @@ function TransactionsScreen({ go }: { go: (s: Screen) => void }) {
           <div className="flex gap-2 mb-4">
             {["Fév", "Mar", "Avr"].map((m) => (
               <button key={m} onClick={() => setMonth(m)} className="px-4 h-9 rounded-full transition active:scale-95"
-                style={{ background: month === m ? C.primary : C.surface, color: month === m ? C.onPrimary : C.text2, fontSize: 13, fontWeight: 500, boxShadow: month === m ? "none" : SHADOW }}>
+                style={{ background: month === m ? C.primary : C.surface, color: month === m ? C.onPrimary : C.text2, fontSize: 13, fontWeight: 500, border: `1px solid ${month === m ? C.primary : C.border}` }}>
                 {m}
               </button>
             ))}
@@ -755,14 +769,14 @@ function TransactionsScreen({ go }: { go: (s: Screen) => void }) {
               </button>
             ))}
           </div>
-          <div className="rounded-[20px] p-4 flex justify-between mb-4" style={{ background: C.card, boxShadow: SHADOW }}>
+          <div className="rounded-[20px] p-4 flex justify-between mb-4" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
             <div>
               <div style={{ color: C.text2, fontSize: 12 }}>Dépenses</div>
-              <div style={{ color: C.danger, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>-1 247 €</div>
+              <div style={{ color: C.danger, fontSize: 18, fontWeight: 600, fontFamily: "Brunson, sans-serif" }}>-1 247 €</div>
             </div>
             <div className="text-right">
               <div style={{ color: C.text2, fontSize: 12 }}>Revenus</div>
-              <div style={{ color: C.success, fontSize: 18, fontWeight: 600 , fontFamily: "Brunson, sans-serif" }}>+2 100 €</div>
+              <div style={{ color: C.success, fontSize: 18, fontWeight: 600, fontFamily: "Brunson, sans-serif" }}>+2 100 €</div>
             </div>
           </div>
           {Object.entries(grouped).map(([date, items]) => (
@@ -1428,7 +1442,7 @@ function GoalCreatedScreen({ go, goal, isFromSuggestion, onCreated }: {
           <div className="h-2 rounded-full" style={{ background: C.border }}>
             <div className="h-full rounded-full" style={{ width: "0%", background: C.primary }} />
           </div>
-          <div style={{ color: C.text2, fontSize: 12 }} className="mt-2">0 € / {goal?.amount.toLocaleString("fr-FR")} €</div>
+          <div style={{ color: C.text2, fontSize: 12 }} className="mt-2">0 € / {goal?.amount?.toLocaleString("fr-FR") ?? "0"} €</div>
         </div>
       </div>
       <div className="px-6 pb-12 space-y-3">

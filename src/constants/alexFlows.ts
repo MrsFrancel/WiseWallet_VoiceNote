@@ -189,10 +189,10 @@ const steps: AlexStep[] = [
     id: "age_transition",
     messages: (ctx) => [
       p(ctx, {
-        junior:     `Super ${ctx.prenom} ! 🙌 T'inquiète, même avec un petit budget on peut construire quelque chose de bien. Quel est ton salaire annuel environ ?`,
-        cible:      `Nickel ${ctx.prenom} ! 👌 C'est le bon moment pour se lancer. Quel est ton salaire annuel environ ?`,
-        secondaire: `Parfait ${ctx.prenom} 👍 On va construire un plan solide adapté à tes objectifs. Quel est ton salaire annuel environ ?`,
-        senior:     `Enchanté(e) ${ctx.prenom} 😊 On va construire quelque chose de rassurant et bien structuré ensemble. Quel est votre salaire / retraite annuel environ ?`,
+        junior:     `Super ${ctx.prenom} ! 🙌 T'inquiète, même avec un petit budget on peut construire quelque chose de bien.`,
+        cible:      `Nickel ${ctx.prenom} ! 👌 C'est le bon moment pour se lancer.`,
+        secondaire: `Parfait ${ctx.prenom} 👍 On va construire un plan solide adapté à tes objectifs.`,
+        senior:     `Enchanté(e) ${ctx.prenom} 😊 On va construire quelque chose de rassurant et bien structuré ensemble.`,
       }),
     ],
     buttons: null,

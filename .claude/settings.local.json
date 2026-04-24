@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Notion__notion-fetch",
+      "Bash(npm run *)",
+      "mcp__github__get_me",
+      "mcp__github__create_repository",
+      "Bash(git remote *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(curl -s -X GET https://api.voiceflow.com/v2/projects/69e87f2a9b8afffb2de91a8b -H 'Authorization: VF.DM.69e9cd55ff54563e95cea270.FIykvB5kbHcVLnyj' -H 'Content-Type: application/json')",
+      "Bash(node *)",
+      "Bash(npx tsc *)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(node_modules/.bin/tsc.cmd --noEmit)",
+      "Bash(gh repo *)",
+      "mcp__plugin_figma_figma__get_metadata",
+      "mcp__plugin_figma_figma__get_screenshot",
+      "mcp__plugin_figma_figma__get_design_context"
+    ]
+  }
+}
